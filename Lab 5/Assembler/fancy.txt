@@ -1,0 +1,26 @@
+// this is a test lol
+
+
+// of my new fancy assembler
+
+.data
+* val1: num 72 // my H value
+// fdfsf
+
+* val2: str hello_world
+* val3: str haha_that_was_fake
+.text
+// some comments
+* ori $r3 $zero 0
+* ori $r5 $zero 1
+* beg:
+// read char, if not zero print it else end
+* la $r6 val2
+* lw $r4 $r3 val3
+* beq $r4 $zero end
+* send $r4
+* add $r3 $r3 $r5 // increment char pointer
+* j beg 
+
+* end:
+* add $zero $zero $zero // program finished

@@ -1,0 +1,25 @@
+.data
+
+// our hello world string
+val1: str "hello_world"
+
+.text
+
+// load constants to start
+ori $r3 $zero 0 // counter for string
+ori $r4 $zero 0 // counter for video memory
+ori $r5 $zero 1 // constant 1
+ori $r6 $zero 4096 // constant for vid mem addr max
+
+// read char, if not zero print it else end
+beg:
+lw $r7 $r3 val1
+beq $r7 $zero end
+send $r7
+add $r3 $r3 $r5 // increment char pointer
+j beg 
+
+// time for video stuff REDACTED
+end:
+add $zero $zero $zero
+

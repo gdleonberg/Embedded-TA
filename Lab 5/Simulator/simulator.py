@@ -177,7 +177,8 @@ def execute(instruction, regs, dMem, tLabels, dLabels):
 			temp = temp - 2**16
 		regs[args[1]] = temp
 	elif (instruction == "srl") or (instruction == "sra"):
-		regs[args[1]] = int(regs[args[2]] + regs[args[3]])
+		temp = int(regs[args[2]] // 2)
+		regs[args[1]] = temp
 	elif instruction == "and":
 		regs[args[1]] = int(regs[args[2]] & regs[args[3]])
 	elif instruction == "or":
@@ -216,8 +217,8 @@ def execute(instruction, regs, dMem, tLabels, dLabels):
 		if regs[args[1]] == regs[args[2]]:
 			regs['$pc'] = bin2dec(tLabels[args[3]])
 	elif instruction == "bne":
-		if regs[args[1]] != bin2dec(tLabels[args[2]]):
-			regs['$pc'] = int(args[3])
+		if regs[args[1]] != regs[args[2]]:
+			regs['$pc'] = bin2dec(tLabels[args[3]])
 	elif instruction == "ori":
 		regs[args[1]] = regs[args[2]] | int(args[3])
 	elif instruction == "la":
@@ -225,7 +226,7 @@ def execute(instruction, regs, dMem, tLabels, dLabels):
 	elif instruction == "lw":
 		regs[args[1]] = dMem[regs[args[2]] + bin2dec(dLabels[args[3]])]
 	elif instruction == "sw":
-		dMem[regs[args[2]] + int(args[3])] = regs[args[1]]
+		dMem[regs[args[2]] + bin2dec(dLabels[args[3]])] = regs[args[1]]
 	elif instruction == "j":
 		regs['$pc'] = bin2dec(tLabels[args[1]])
 	elif instruction == "jal":

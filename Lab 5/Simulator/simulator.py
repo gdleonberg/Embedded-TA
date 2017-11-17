@@ -42,10 +42,10 @@
 # Requires Pillow package (pip install Pillow)
 # Requires numpy package
 ##---------------------------------------------------------------
+
 from tkinter import filedialog
 from tkinter import *
 from time import sleep
-from matplotlib import pyplot as plt
 from PIL import Image
 import numpy as np
 import threading
@@ -53,7 +53,6 @@ import threading
 framebuffer = list()
 for i in range(2**16):
 	framebuffer.append(0)
-
 
 #################################################################
 
@@ -284,11 +283,11 @@ def shell(textLines, regs, dMem, bPoints, step, tLabels, dLabels):
 			print("")
 		elif choice == "dlabels":
 			for label in dLabels:
-				print(label)
+				print(label + ": [" + str(bin2dec(dLabels[label])) + "]")
 			print("")
 		elif choice == "tlabels":
 			for label in tLabels:
-				print(label)
+				print(label + ": [" + str(bin2dec(tLabels[label])) + "]")
 			print("")
 		elif choice == "instr":
 			print(textLines[i] + "\n")
@@ -374,7 +373,7 @@ def display():
 		# img.show() WINDOWS 8 PHOTO VEIWER HIJACKS MY DESKTOP
 		# MIGHT WORK BETTER FOR OTHER OS'S
 		
-		# wait for next frame time (currently set to 1 fps)
+		# wait for next frame time (currently set to 1 fps) 
 		sleep(1.0)
 
 def getRGBShell(addr):

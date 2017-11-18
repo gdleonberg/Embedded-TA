@@ -45,6 +45,7 @@
 
 from tkinter import filedialog
 from tkinter import *
+from os import remove
 from time import sleep
 from PIL import Image
 import numpy as np
@@ -80,10 +81,10 @@ def simulator():
 	textLines = cleaned[tStart:]
 	
 	# build labels from data segment, initialize data memory
-	dLabels, dMem = dataSegment(dataLines)
+	dLabels, dMem, dDict = dataSegment(dataLines)
 	
 	# build labels from instruction segment
-	tLabels, textLines = textLabels(textLines)
+	tLabels, tLines = textLabels(textLines)
 	
 	# build register file and initialize to zero
 	regs = {};
@@ -95,7 +96,7 @@ def simulator():
 		regs[st] = 0
 	
 	# interpret instructions
-	interpret(textLines, regs, dMem, tLabels, dLabels)
+	interpret(tLines, textLines, regs, dMem, tLabels, dLabels, dDict)
 	
 	return True
 
@@ -116,12 +117,23 @@ def dec2bin(num, digits):
 def bin2dec(binary):
 	return int(binary, 2)
 
-def interpret(textLines, regs, dMem, tLabels, dLabels):
+def interpret(tLines, textLines, regs, dMem, tLabels, dLabels, dDict):
+	
+	# display data tags
+	print("Parsed data:")
+	for i in dDict:
+		print("[" + str(bin2dec(dLabels[i])) + "]: \t" + i + ": " + dDict[i])
+	print("")
 	
 	# display cleaned instructions
 	print("Parsed instructions:")
+	j = 0
 	for i in range(len(textLines)):
-		print("[" + str(i) + "]: " + textLines[i])
+		if ":" in textLines[i]:
+			print(textLines[i])
+		else:
+			print("[" + str(j) + "]: " + textLines[i])
+			j = j + 1
 	print("")
 	
 	# ask for break points desired by user
@@ -142,15 +154,15 @@ def interpret(textLines, regs, dMem, tLabels, dLabels):
 	step = False
 	i = 0
 	counter = 0
-	while i != len(textLines):
+	while i != len(tLines):
 		
 		# if line is breakpoint, trigger user command shell
 		if (i in bPoints) or step:
-			bPoints, step, dMem, regs = shell(textLines, regs, dMem, bPoints, step, tLabels, dLabels)
+			bPoints, step, dMem, regs = shell(tLines, textLines, regs, dMem, bPoints, step, tLabels, dLabels, dDict)
 			i = regs['$pc']
 		
 		# execute instruction
-		regs, dMem = execute(textLines[i], regs, dMem, tLabels, dLabels)
+		regs, dMem = execute(tLines[i], regs, dMem, tLabels, dLabels)
 		i = regs['$pc']
 		regs['$zero'] = 0
 
@@ -234,11 +246,11 @@ def execute(instruction, regs, dMem, tLabels, dLabels):
 		regs['$pc'] = bin2dec(tLabels[args[1]])
 	elif instruction == "clrscr":
 		for i in range(len(framebuffer)):
-			framebuffer[i] = int(args[1])
+			framebuffer[i] = 0
 	
 	return regs, dMem
 
-def shell(textLines, regs, dMem, bPoints, step, tLabels, dLabels):
+def shell(tLines, textLines, regs, dMem, bPoints, step, tLabels, dLabels, dDict):
 	
 	global framebuffer
 	
@@ -266,11 +278,33 @@ def shell(textLines, regs, dMem, bPoints, step, tLabels, dLabels):
 		print("\tPoke a register value ('rPoke')")
 		print("\tPoke a video memory value ('vPoke')")
 		print("\tPoke a data memory value ('dPoke')")
+		print("\tRepeat this command list ('help')")
 		print("\tExit debug shell ('exit')\n\n")
 	
+	help = False
 	choice = ""
 	while (choice != "exit") and (choice != "step"):
-	
+		
+		if help == True:
+			# print command list
+			print("Options:")
+			print("\tShow program ('prg')")
+			print("\tShow data labels ('dlabels')")
+			print("\tShow text labels ('tlabels')")
+			print("\tShow instruction ('instr')")
+			print("\tShow registers ('regs')")
+			print("\tShow breakpoints ('bps')")
+			print("\tAdd breakpoint ('addbp')")
+			print("\tRemove breakpoint ('rmbp')")
+			print("\tStep a single instruction ('step')")
+			print("\tPeek at video memory ('vPeek')")
+			print("\tPeek at data memory ('dPeek')")
+			print("\tPoke a register value ('rPoke')")
+			print("\tPoke a video memory value ('vPoke')")
+			print("\tPoke a data memory value ('dPoke')")
+			print("\tRepeat this command list ('help')")
+			print("\tExit debug shell ('exit')\n\n")
+		
 		# read command
 		choice = input("Enter your choice: ")
 		choice = choice.strip()
@@ -278,9 +312,18 @@ def shell(textLines, regs, dMem, bPoints, step, tLabels, dLabels):
 	
 		# act based on command
 		if choice == "prg":
+			print("Parsed data:")
+			for i in dDict:
+				print("[" + str(bin2dec(dLabels[i])) + "]: \t" + i + ": " + dDict[i])
+			print("")
 			print("Parsed instructions:")
-			for j in range(len(textLines)):
-				print("[" + str(j) + "]: " + textLines[j])
+			j = 0
+			for i in range(len(textLines)):
+				if ":" in textLines[i]:
+					print(textLines[i])
+				else:
+					print("[" + str(j) + "]: " + textLines[i])
+					j = j + 1
 			print("")
 		elif choice == "dlabels":
 			for label in dLabels:
@@ -344,6 +387,8 @@ def shell(textLines, regs, dMem, bPoints, step, tLabels, dLabels):
 				dMem[addr] = val
 		elif choice == "step":
 			step = True
+		elif choice == "help":
+			help = True
 	
 	# wait for resume
 	input("Press enter to continue program execution: ")
@@ -371,11 +416,16 @@ def display():
 		
 		img = Image.fromarray(data, 'RGB')
 		img.save('temp.png')
+		
 		# img.show() WINDOWS 8 PHOTO VEIWER HIJACKS MY DESKTOP
 		# MIGHT WORK BETTER FOR OTHER OS'S
 		
 		# wait for next frame time (currently set to 1 fps) 
-		sleep(1.0)
+		oldFB = [x for x in framebuffer]
+		while(oldFB == framebuffer):
+			oldFB = [x for x in framebuffer]
+			sleep(1.0)
+		remove('temp.png')
 
 def getRGBShell(addr):
 	
@@ -392,6 +442,7 @@ def getRGBShell(addr):
 
 def dataSegment(dataLines):
 	
+	dDict= {}
 	dMem = list()
 	for i in range(0, 2**16):
 		dMem.append(0)
@@ -407,6 +458,8 @@ def dataSegment(dataLines):
 		
 		labels[tag] = dec2bin(counter, 16)
 		
+		dDict[tag] = val
+		
 		if typ == 'str':
 			val = val.split('"')[1]
 			val = val.split('"')[0]
@@ -418,7 +471,7 @@ def dataSegment(dataLines):
 		else:
 			dMem[counter] = int(val)
 			counter = counter + 1
-	return labels, dMem
+	return labels, dMem, dDict
 
 def textLabels(textLines):
 	

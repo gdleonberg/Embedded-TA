@@ -202,7 +202,7 @@ def buildTextCoe(textLines, dLabels, tLabels):
 			if((opcode == 'j') or (opcode == 'jal')):
 				command = command + tLabels[args[1]]
 			else:
-				command = command + dec2bin(int(args[2]), 16)
+				command = command
 		
 		# pad command on the right to 32 bits
 		command = command.ljust(32, '0')
@@ -224,16 +224,19 @@ def dec2bin(num, digits):
 def askOpen():
 	root = Tk()
 	root.filename = filedialog.askopenfilename(initialdir = "/",title = "Select source file",filetypes = (("assembly source","*.txt"),("all files","*.*")))
+	root.destroy()
 	return root.filename
 
 def askSaveData():
 	root = Tk()
 	root.filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select data output file",filetypes = (("COE files","*.coe"),("all files","*.*")))
+	root.destroy()
 	return root.filename
 
 def askSaveText():
 	root = Tk()
 	root.filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select text output file",filetypes = (("COE files","*.coe"),("all files","*.*")))
+	root.destroy()
 	return root.filename
 
 def buildDicts():

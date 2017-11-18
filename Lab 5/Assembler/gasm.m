@@ -210,12 +210,6 @@ for i = 1:numLines
     else
         if(strcmp(opcode, 'j') || strcmp(opcode, 'jal'))
             command = [command, labels(args{1}{2})];
-        else
-            temp =  dec2bin(str2double(args{1}{4}), 16);
-            while(length(temp) < 16)
-                temp = ['0', temp];
-            end
-            command = [command, temp];
         end     
     end
     
